@@ -6,7 +6,12 @@ info:
 servers:
   - url: http://localhost:3000
     description: Local development server
-
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 paths:
   /register:
     post:
@@ -81,9 +86,11 @@ paths:
                 email:
                   type: string
                   format: email
+                  description: The email of the user
                   example: turbash@example.com
                 password:
                   type: string
+                  description: The password of the user
                   minLength: 8
                   example: turbashking
       responses:
@@ -114,3 +121,132 @@ paths:
               schema:
                 type: string
                 example: Invalid Credentials
+  /regrets:
+    post:
+      summary: Create a new regret
+      description: This creates a new regret entry for the authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - message
+              properties:
+                title:
+                  type: string
+                  description: The title of the regret
+                  example: "My biggest regret"
+                message:
+                  type: string
+                  description: The message describing the regret
+                  example: "I wish I had studied harder."
+                regretLevel:
+                  type: number
+                  description: The level of regret (1-10)
+                  minimum: 1
+                  maximum: 10
+                  example: 5
+                isPublic:
+                  type: boolean
+                  description: Whether the regret is public or private
+                  example: false
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: Regret created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Regret created successfully
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: string
+                        example: user_id_here
+                      title:
+                        type: string
+                        example: "My biggest regret"
+                      message:
+                        type: string
+                        example: "I wish I had studied harder."
+                      regretLevel:
+                        type: number
+                        example: 5
+                      isPublic:
+                        type: boolean
+                        example: false
+        '404':
+          description: User not found
+          content:
+            text/html:
+              schema:
+                type: string
+                example: User not found
+        '401':
+          description: Unauthorized
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Unauthorized, Access Denied
+        '500':
+          description: Internal Server Error
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Internal Server Error
+    get:
+      summary: Get all public regrets
+      description: This returns all the public regrets from the database
+      responses:
+        '200':
+          description: A list of public regrets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: number
+                    example: 1
+                  regrets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        user:
+                          type: string
+                          example: user_id_here
+                        title:
+                          type: string
+                          example: "My biggest regret"
+                        message:
+                          type: string
+                          example: "I wish I had studied harder."
+                        regretLevel:
+                          type: number
+                          example: 5
+                        isPublic:
+                          type: boolean
+                          example: false
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2023-01-01T00:00:00Z"
+        '500':
+          description: Internal Server Error
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Internal Server Error
