@@ -1,0 +1,116 @@
+openapi: 3.1.0
+info:
+  title: Regret Vault API
+  description: This is my first attempt at API documentation.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /register:
+    post:
+      summary: Register a new user
+      description: This creates a new user in the database, this is important as you need to be registered to access other routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  example: turbash
+                email:
+                  type: string
+                  format: email
+                  example: turbash@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: turbashking
+      responses:
+        '200':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Registration Successful
+                  token:
+                    type: string
+                    example: jwt_token_here
+        '400':
+          description: User already exists
+          content:
+            text/html:
+              schema:
+                type: string
+                example: User already exists
+        '500':
+          description: Internal Server Error
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Internal Server Error
+
+  /login:
+    post:
+      summary: Login a user
+      description: This logs in an existing user and returns a JWT token to access protected routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: turbash@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: turbashking
+      responses:
+        '200':
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login Successful
+                  token:
+                    type: string
+                    example: jwt_token_here
+        '404':
+          description: User not found
+          content:
+            text/html:
+              schema:
+                type: string
+                example: User not found
+        '401':
+          description: Invalid email or password
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Invalid Credentials
