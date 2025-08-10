@@ -69,7 +69,7 @@ app.post('/regrets', isAuthenticated, async (req, res) => {
     try {
         const user = await userModel.findOne({ email });
         if (!user) {
-            return res.status(404).send('User not found');
+            return res.status(401).send('Unauthorized, User not found for the token');
         }
         const regret = await regretsModel.create({ user: user._id, title, message, regretLevel, isPublic });
         return res.status(201).send({
@@ -85,6 +85,80 @@ app.post('/regrets', isAuthenticated, async (req, res) => {
         });
     }
     catch {
+        return res.status(500).send('Internal Server Error');
+    }
+});
+
+
+app.get('/regrets',async (req,res)=>{
+    try {
+        const regrets = await regretsModel.find();
+        const public_regrets = regrets.filter(regret => {
+            if (regret.isPublic) {
+                return true;
+            }
+        });
+        if (public_regrets.length === 0) {
+            return res.status(404).send('No public regrets found');
+        }
+        public_regrets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return res.status(200).send({count: public_regrets.length, regrets: public_regrets});
+    }
+    catch{
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/my-regrets', isAuthenticated, async (req, res) => {
+    const email = req.user.email;
+    try {
+        const user = await userModel.findOne({ email });
+        if (!user) {
+            return res.status(401).send('Unauthorized, User not found for the token');
+        }
+        const regrets = await regretsModel.find({ user: user._id });
+        if (regrets.length === 0) {
+            return res.status(404).send('No regrets found for this user');
+        }
+        regrets.sort( (a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return res.status(200).send({ count: regrets.length, regrets });
+    }
+    catch {
+        return res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/regrets/:id', optionalAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    try {
+        if (!id) {
+            return res.status(400).send('Invalid request, ID is required');
+        }
+        const regret = await regretsModel.findById(id);
+        if (!regret) {
+            return res.status(404).send('Regret not found');
+        }
+        if (regret.isPublic){
+            return res.status(200).send(regret);
+        }
+        if (req.user) {
+            const user = await userModel.findOne({ email: req.user.email });
+            if (!user) {
+                return res.status(401).send('Unauthorized, User not found for the token');
+            };
+            if (user && user._id.toString() === regret.user.toString()) {
+                return res.status(200).send(regret);
+            }
+            else{
+                return res.status(403).send('Forbidden, You do not have access to this regret');
+            }
+        }
+        return res.status(401).send('Unauthorized, This regret is private, if this is your regret please login');
+    }
+    catch(error){
+        if (error.name === 'CastError') {
+            return res.status(404).send('Invalid regret ID');
+        }
         return res.status(500).send('Internal Server Error');
     }
 });
@@ -109,23 +183,28 @@ function isAuthenticated(req, res, next) {
     }
 }
 
-app.get('/regrets',async (req,res)=>{
-    try {
-        const regrets = await regretsModel.find();
-        const public_regrets = regrets.filter(regret => {
-            if (regret.isPublic) {
-                return true;
-            }
-        });
-        if (public_regrets.length === 0) {
-            return res.status(404).send('No public regrets found');
+function optionalAuthenticated(req, res, next) {
+    const header = req.headers.authorization;
+    if (header && header.startsWith('Bearer ')) {
+        const token = header.split(' ')[1];
+        if (!token) {
+            return next(); 
         }
-        return res.status(200).send({count: public_regrets.length, regrets: public_regrets});
+        try{
+            const verified = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = verified;
+        }
+        catch{
+            pass;
+        }
+        finally {
+            next();
+        }
     }
-    catch{
-        res.status(500).send('Internal Server Error');
+    else{
+        next();
     }
-});
+}
 
 app.listen(3000, async () => {
     try {

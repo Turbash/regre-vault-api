@@ -184,6 +184,13 @@ paths:
                       isPublic:
                         type: boolean
                         example: false
+        '400':
+          description: Invalid Token
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Invalid Token
         '404':
           description: User not found
           content:
@@ -207,7 +214,7 @@ paths:
                 example: Internal Server Error
     get:
       summary: Get all public regrets
-      description: This returns all the public regrets from the database
+      description: This returns all the public regrets from the database in descending order of creation date i.e. most recent regrets first.
       responses:
         '200':
           description: A list of public regrets
@@ -243,6 +250,13 @@ paths:
                           type: string
                           format: date-time
                           example: "2023-01-01T00:00:00Z"
+        '404':
+          description: No public regrets found
+          content:
+            text/html:
+              schema:
+                type: string
+                example: No public regrets found
         '500':
           description: Internal Server Error
           content:
@@ -250,3 +264,149 @@ paths:
               schema:
                 type: string
                 example: Internal Server Error
+  /my-regrets:
+    get:
+      summary: Get all regrets of the current user
+      description: This returns all the regrets posted by the current logged in user in descending order of creation date i.e. most recent regrets first.
+      security:
+        - bearerAuth: []
+      responses: 
+        '200':
+          description: A list of user's regrets public as well as private
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: number
+                    example: 1
+                  regrets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        user:
+                          type: string
+                          example: user_id_here
+                        title:
+                          type: string
+                          example: "My biggest regret"
+                        message:
+                          type: string 
+                          example: "I wish I had studied harder."
+                        regretLevel:
+                          type: number
+                          example: 5
+                        isPublic:
+                          type: boolean
+                          example: false
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2023-01-01T00:00:00Z"
+        '400':
+          description: Invalid Token
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Invalid Token
+        '404':
+          description: No regrets found for this user
+          content:
+            text/html:
+              schema:
+                type: string
+                example: No regrets found for this user
+        '401':
+          description: Unauthorized
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Unauthorized, Access Denied
+        '500':
+          description: Internal Server Error
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Internal Server Error
+  /regrets/{id}:
+    get:
+      summary: Get a specific regret by id
+      description: This returns a specific regret by its ID. If the regret is private, only the user who posted it can access it. If its public, anyone can access it.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: regret_id_here
+          description: The ID of the regret to retrieve.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Regret retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: string
+                    example: user_id_here
+                  title:
+                    type: string
+                    example: "My biggest regret"
+                  message:
+                    type: string
+                    example: "I wish I had studied harder."
+                  regretLevel:
+                    type: number
+                    example: 5
+                  isPublic:
+                    type: boolean
+                    example: false
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2023-01-01T00:00:00Z"
+        '400':
+          description: Invalid Request
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Invalid request, ID is required
+        '401':
+          description: Unauthorized, Access Denied
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Unauthorized, this regret is private, if this is your regret please login
+        '403':
+          description: Forbidden, You do not have access to this regret
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Forbidden, You do not have access to this regret
+        '404':
+          description: Regret not found
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Regret not found
+        '500':
+          description: Internal Server Error
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Internal Server Error
+      
