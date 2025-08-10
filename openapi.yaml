@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Regret Vault API
-  description: This is my first attempt at API documentation.
+  description: This is my first attempt at API documentation. It allows users to register, login, and manage their regrets. Users can create regrets (public or private), view all public regrets, edit, delete their regrets. They can view their own regrets, or view a specific request by id.
   version: 1.0.0
 servers:
   - url: http://localhost:3000
@@ -374,13 +374,6 @@ paths:
                     type: string
                     format: date-time
                     example: "2023-01-01T00:00:00Z"
-        '400':
-          description: Invalid Request
-          content:
-            text/html:
-              schema:
-                type: string
-                example: Invalid request, ID is required
         '401':
           description: Unauthorized, Access Denied
           content:
@@ -409,4 +402,105 @@ paths:
               schema:
                 type: string
                 example: Internal Server Error
-      
+    put:
+      summary: Update a specific regret by id
+      description: This updates a specific regret by taking id as path parameter. Only the user who created the regret can update it.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: regret_id_here
+          description: The ID of the regret to update.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: The title of the regret
+                  example: "My biggest regret"
+                message:
+                  type: string
+                  description: The message describing the regret
+                  example: "I wish I had studied harder."
+                regretLevel:
+                  type: number
+                  description: The level of regret (1-10)
+                  minimum: 1
+                  maximum: 10
+                  example: 5
+                isPublic:
+                  type: boolean
+                  description: Whether the regret is public or private
+                  example: false
+      responses:
+        '200':
+          description: Regret updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Regret updated successfully
+                  data:
+                    type: object 
+                    properties:
+                      user:
+                        type: string
+                        example: user_id_here
+                      title:
+                        type: string
+                        example: "My biggest regret"
+                      message:
+                        type: string
+                        example: "I wish I had studied harder."
+                      regretLevel:
+                        type: number
+                        example: 5
+                      isPublic:
+                        type: boolean
+                        example: false
+        '400':
+          description: Invalid Token
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Invalid Token
+        '404':
+          description: Regret not found
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Regret not found
+        '401':
+          description: Unauthorized
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Unauthorized, Access Denied
+        '403':
+          description: Forbidden
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Forbidden, you do not have access to edit this regret
+        '500':
+          description: Internal Server Error
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Internal Server Error

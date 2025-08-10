@@ -73,7 +73,6 @@ app.post('/regrets', isAuthenticated, async (req, res) => {
         }
         const regret = await regretsModel.create({ user: user._id, title, message, regretLevel, isPublic });
         return res.status(201).send({
-            success: true,
             message: "Regret created successfully",
             data: {
                 user: regret.user,
@@ -131,9 +130,6 @@ app.get('/my-regrets', isAuthenticated, async (req, res) => {
 app.get('/regrets/:id', optionalAuthenticated, async (req, res) => {
     const { id } = req.params;
     try {
-        if (!id) {
-            return res.status(400).send('Invalid request, ID is required');
-        }
         const regret = await regretsModel.findById(id);
         if (!regret) {
             return res.status(404).send('Regret not found');
@@ -155,6 +151,52 @@ app.get('/regrets/:id', optionalAuthenticated, async (req, res) => {
         }
         return res.status(401).send('Unauthorized, This regret is private, if this is your regret please login');
     }
+    catch(error){
+        if (error.name === 'CastError') {
+            return res.status(404).send('Invalid regret ID');
+        }
+        return res.status(500).send('Internal Server Error');
+    }
+});
+
+app.put('/regrets/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { title, message, regretLevel, isPublic } = req.body;
+    try{
+        const regret = await regretsModel.findById(id);
+        if (!regret) {
+            return res.status(404).send('Regret not found');
+        }
+        const user = await userModel.findOne({ email: req.user.email });
+        if (!user) {
+            return res.status(401).send('Unauthorized, User not found for the token');
+        }
+        if (user && user._id.toString() !== regret.user.toString()) {
+            return res.status(403).send('Forbidden, You do not have access to this regret');
+        }
+        if (title !==undefined && title!=="") {
+            regret.title = title;
+        }
+        if (message !==undefined && message!=="") {
+            regret.message = message;
+        }
+        if (regretLevel !==undefined && regretLevel!=="") {
+            regret.regretLevel = regretLevel;
+        }
+        if (isPublic !==undefined && isPublic!=="") {
+            regret.isPublic = isPublic;
+        }
+        await regret.save();
+        return res.status(200).send({
+            message: "Regret updated successfully",
+            data: {
+                user: regret.user,
+                title: regret.title,
+                message: regret.message,
+                regretLevel: regret.regretLevel,
+                isPublic: regret.isPublic
+            }
+        });    }
     catch(error){
         if (error.name === 'CastError') {
             return res.status(404).send('Invalid regret ID');
