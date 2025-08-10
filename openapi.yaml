@@ -560,3 +560,144 @@ paths:
               schema:
                 type: string
                 example: Internal Server Error
+  /regrets/search:
+    get:
+      summary: Search regrets by title or message
+      description: This allows users to search for specific public regrets by their title or message.
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+            example: "studied."
+          description: The search query to filter regrets by title or message.
+      responses:
+        '200':
+          description: All public regrets which match the search query
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: number
+                    example: 2
+                  regrets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: regret_id_here
+                        title:
+                          type: string
+                          example: "I regret studying for exams."
+                        message:
+                          type: string
+                          example: "I wish I had spent more time with my friends."
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2023-10-01T12:00:00Z"
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          example: "2023-10-01T12:00:00Z"
+        '400':
+          description: Search query is required
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Search query is required
+        '404':
+          description: No regrets found matching the search query
+          content:
+            text/html:
+              schema:
+                type: string
+                example: No regrets found matching the search query
+        '500':
+          description: Internal Server Error
+          content:
+            text/html:
+              schema:
+                type: string      
+                example: Internal Server Error
+  /my-regrets/search:
+    get:
+      summary: Search your regrets by title or message
+      description: This allows users to search for their own regrets by title or message. You need to be authenticated.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+            example: "studied."
+          description: The search query to filter regrets by title or message.
+      responses:
+        '200':
+          description: All your regrets which match the search query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: number
+                    example: 2
+                  regrets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: regret_id_here
+                        title:
+                          type: string
+                          example: "I regret studying for exams."
+                        message:
+                          type: string
+                          example: "I wish I had spent more time with my friends."
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2023-10-01T12:00:00Z"
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          example: "2023-10-01T12:00:00Z"
+        '400':
+          description: Search query is required
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Search query is required
+        '401':
+          description: Unauthorized
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Unauthorized, Access Denied
+        '404':
+          description: No regrets found matching the search query
+          content:
+            text/html:
+              schema:
+                type: string
+                example: No regrets found matching the search query
+        '500':
+          description: Internal Server Error
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Internal Server Error

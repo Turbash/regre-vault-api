@@ -236,6 +236,59 @@ app.delete('/regrets/:id', isAuthenticated, async(req,res)=>{
     }
 });
 
+app.get('/regrets/search', async (req,res) => {
+    try{
+        const searchQuery = req.query.query;
+        if(!searchQuery){
+            return res.status(400).send("Search query is required");
+        }
+        const regrets = await regretsModel.find({
+            isPublic: true,
+            $or: [
+                { title: { $regex: searchQuery, $options: 'i' } },
+                { message: { $regex: searchQuery, $options: 'i' } }
+            ]
+        });
+        if (regrets.length === 0) {
+            return res.status(404).send('No regrets found matching the search query');
+        }
+        regrets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return res.status(200).send({
+            count: regrets.length,
+            regrets
+        });
+    }
+    catch{
+        return res.status(500).send('Internal Server Error');
+    }
+});
+
+app.get('/my-regrets/search', isAuthenticated, async (req, res) => {
+    try {
+        const searchQuery = req.query.query;
+        if (!searchQuery) {
+            return res.status(400).send("Search query is required");
+        }
+        const regrets = await regretsModel.find({
+            user: req.user._id,
+            $or: [
+                { title: { $regex: searchQuery, $options: 'i' } },
+                { message: { $regex: searchQuery, $options: 'i' } }
+            ]
+        });
+        if (regrets.length === 0) {
+            return res.status(404).send('No regrets found matching the search query');
+        }
+        regrets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        return res.status(200).send({
+            count: regrets.length,
+            regrets
+        });
+    } catch {
+        return res.status(500).send('Internal Server Error');
+    }
+});
+
 function isAuthenticated(req, res, next) {
     const header = req.headers.authorization;
     if (header && header.startsWith('Bearer ')) {
