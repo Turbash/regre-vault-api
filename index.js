@@ -171,7 +171,7 @@ app.put('/regrets/:id', isAuthenticated, async (req, res) => {
         if (!user) {
             return res.status(401).send('Unauthorized, User not found for the token');
         }
-        if (user && user._id.toString() !== regret.user.toString()) {
+        if (user._id.toString() !== regret.user.toString()) {
             return res.status(403).send('Forbidden, You do not have access to this regret');
         }
         if (title !==undefined && title!=="") {
@@ -199,6 +199,31 @@ app.put('/regrets/:id', isAuthenticated, async (req, res) => {
         });    }
     catch(error){
         if (error.name === 'CastError') {
+            return res.status(404).send('Invalid regret ID');
+        }
+        return res.status(500).send('Internal Server Error');
+    }
+});
+
+app.delete('/regrets/:id', isAuthenticated, async(req,res)=>{
+    const { id } = req.params;
+    try{
+        const regret = await regretsModel.findById(id);
+        if (!regret) {
+            return res.status(404).send('Regret not found');
+        }
+        const user = await userModel.findOne({email: req.user.email});
+        if(!user){
+            return res.status(401).send('Unauthorized, User not found for the token');
+        }
+        if(user._id.toString()!==regret.user.toString()){
+            return res.status(403).send('Forbidden, You do not have access to this regret');
+        }
+        await regretsModel.findByIdAndDelete(id);
+        return res.status(200).send('Regret deleted successfully');
+    }
+    catch(error){
+        if(error.name === "CastError"){
             return res.status(404).send('Invalid regret ID');
         }
         return res.status(500).send('Internal Server Error');

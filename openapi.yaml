@@ -504,3 +504,59 @@ paths:
               schema:
                 type: string
                 example: Internal Server Error
+    delete:
+      summary: Delete a specific regret by id
+      description: This deletes a specific regret by its ID. Only the user who posted the regret can delete it. Requires user to be logged in.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            example: regret_id_here
+          description: The ID of the regret to update.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Regret deleted successfully
+          content: 
+            text/html:
+              schema:
+                type: string
+                example: Regret deleted successfully
+        '400':
+          description: Invalid token
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Invalid Token
+        '401':
+          description: Unauthorized
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Unauthorized, Access Denied
+        '403':
+          description: Forbidden
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Forbidden, You do not have access to this regret
+        '404':
+          description: Regret not found
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Regret not found
+        '500':
+          description: Internal Server Error
+          content:
+            text/html:
+              schema:
+                type: string
+                example: Internal Server Error
