@@ -5,12 +5,18 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
+const cors = require('cors');
 
 const dbConnect = require('./db/db');
 const userModel = require('./models/user');
 const regretsModel = require('./models/regrets');
 const swaggerDocument = YAML.load('./openapi.yaml');
 
+const corsOptions = {
+    origin: 'https://regret-vault-api.onrender.com',    
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 dotenv.config();
 
