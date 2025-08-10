@@ -4,7 +4,7 @@ info:
   description: This is my first attempt at API documentation. It allows users to register, login, and manage their regrets. Users can create regrets (public or private), view all public regrets, edit, delete their regrets. They can view their own regrets, or view a specific request by id.
   version: 1.0.0
 servers:
-  - url: https://regret-vault-api.onrender.com
+  - url: http://localhost:3000
     description: Live production server
 components:
   securitySchemes:
@@ -570,7 +570,7 @@ paths:
           required: true
           schema:
             type: string
-            example: "studied."
+            example: "studied"
           description: The search query to filter regrets by title or message.
       responses:
         '200':
@@ -638,7 +638,7 @@ paths:
           required: true
           schema:
             type: string
-            example: "studied."
+            example: "studied"
           description: The search query to filter regrets by title or message.
       responses:
         '200':
